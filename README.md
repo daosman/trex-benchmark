@@ -8,25 +8,25 @@ It uses [trex](https://trex-tgn.cisco.com/) for traffic generation and DPDK's te
 The test requires 2 SNOs with direct connections between 2 ports as illustrated below.
 
 ```
-     ┌────────────────────────────┐                                 ┌────────────────────────────┐
-     │ Openshift SNO / DU Profile │                                 │ Openshift SNO / DU Profile │
-     │                            │                                 │                            │
-     │     ┌──────────┐          ┌────┐                         ┌────┐        ┌──────────┐       │
-     │     │          │          │ VF ├─────────────────────────┤ VF │        │          │       │
-     │     │          │          └────┘                         └────┘        │          │       │
-     │     │          │           │                                 │         │          │       │
-     │     │          │           │                                 │         │          │       │
-     │     │   TREX   │           │                                 │         │ TestPMD  │       │
-     │     │          │           │                                 │         │          │       │
-     │     │          │           │                                 │         │          │       │
-     │     │          │           │                                 │         │          │       │
-     │     │          │           │                                 │         │          │       │
-     │     │          │          ┌────┐                         ┌────┐        │          │       │
-     │     │          │          │ VF ├─────────────────────────┤ VF │        │          │       │
-     │     └──────────┘          └────┘                         └────┘        └──────────┘       │
-     │                            │                                 │                            │
-     │                            │                                 │             DUT            │
-     └────────────────────────────┘                                 └────────────────────────────┘
+  ┌────────────────────────────┐                                 ┌────────────────────────────┐
+  │ Openshift SNO / DU Profile │                                 │ Openshift SNO / DU Profile │
+  │                            │                                 │                            │
+  │     ┌──────────┐          ┌────┐                         ┌────┐        ┌──────────┐       │
+  │     │          │          │ VF ├─────────────────────────┤ VF │        │          │       │
+  │     │          │          └────┘                         └────┘        │          │       │
+  │     │          │           │                                 │         │          │       │
+  │     │          │           │                                 │         │          │       │
+  │     │   TREX   │           │                                 │         │ TestPMD  │       │
+  │     │          │           │                                 │         │          │       │
+  │     │          │           │                                 │         │          │       │
+  │     │          │           │                                 │         │          │       │
+  │     │          │           │                                 │         │          │       │
+  │     │          │          ┌────┐                         ┌────┐        │          │       │
+  │     │          │          │ VF ├─────────────────────────┤ VF │        │          │       │
+  │     └──────────┘          └────┘                         └────┘        └──────────┘       │
+  │                            │                                 │                            │
+  │                            │                                 │             DUT            │
+  └────────────────────────────┘                                 └────────────────────────────┘
 ```
 Both SNOs must be configured with the reference DU profile deployed with ZTP.  Specifically it expects the reference 2 sriov networks `sriov-nw-du-fh` and `sriov-nw-du-mh` from 2 VFs on 2 seperate ports.  The nodes must also have the Performance Profile configured.
 
