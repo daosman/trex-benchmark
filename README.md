@@ -12,7 +12,7 @@ The test requires 2 SNOs with direct connections between 2 ports as illustrated 
   │ Openshift SNO / DU Profile │                                 │ Openshift SNO / DU Profile │
   │                            │                                 │                            │
   │     ┌──────────┐          ┌────┐                         ┌────┐        ┌──────────┐       │
-  │     │          │          │ VF ├─────────────────────────┤ VF │        │          │       │
+  │     │          │          │ PF ├─────────────────────────┤ VF │        │          │       │
   │     │          │          └────┘                         └────┘        │          │       │
   │     │          │           │                                 │         │          │       │
   │     │          │           │                                 │         │          │       │
@@ -22,7 +22,7 @@ The test requires 2 SNOs with direct connections between 2 ports as illustrated 
   │     │          │           │                                 │         │          │       │
   │     │          │           │                                 │         │          │       │
   │     │          │          ┌────┐                         ┌────┐        │          │       │
-  │     │          │          │ VF ├─────────────────────────┤ VF │        │          │       │
+  │     │          │          │ PF ├─────────────────────────┤ VF │        │          │       │
   │     └──────────┘          └────┘                         └────┘        └──────────┘       │
   │                            │                                 │                            │
   │                            │                                 │             DUT            │
