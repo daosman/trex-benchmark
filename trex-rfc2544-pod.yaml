@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: trex-rfc2544
+  namespace: benchmark
+  labels:
+    app: trex-rfc2544
+spec:
+  restartPolicy: Never
+  containers:
+  - name: trex-rfc-2544
+    image: quay.io/dosman/trex:3.02
+    command: ["/usr/bin/rfc-2544.sh"]
+    args: []
+    imagePullPolicy: Always
+    resources:
+      requests:
+        cpu: 1
+        memory: "1Gi"

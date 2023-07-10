@@ -4,18 +4,6 @@ metadata:
   name: trex
   namespace: benchmark
   annotations:
-    k8s.v1.cni.cncf.io/networks: '[
-      {
-       "name": "sriov-nw-du-fh",
-       "mac": "50:00:00:00:00:01",
-       "namespace": "openshift-sriov-network-operator"
-      },
-      {
-       "name": "sriov-nw-du-mh",
-       "mac": "50:00:00:00:00:02",
-       "namespace": "openshift-sriov-network-operator"
-      }
-    ]'
     cpu-load-balancing.crio.io: "disable"
     cpu-quota.crio.io: "disable"
     irq-load-balancing.crio.io: "disable"
@@ -26,41 +14,59 @@ spec:
   restartPolicy: Never
   containers:
   - name: trex
-#   command:
-#     - /bin/bash
-#     - -c
-#     - sleep INF
     image: quay.io/dosman/trex:3.02
+    command: ["/usr/bin/run.sh"]
     imagePullPolicy: Always
     env:
     - name: SRIOV_ID_A
-      value: "DU_FH"
+      value: "PF_FH"
     - name: SRIOV_ID_B
-      value: "DU_MH"
+      value: "PF_MH"
+    - name: PCIDEVICE_OPENSHIFT_IO_PF_FH
+      value: "0000:1a:00.2"
+    - name: PCIDEVICE_OPENSHIFT_IO_PF_MH
+      value: "0000:1a:00.3"
     - name: PORT_BANDWIDTH_GB
       value: "25"
+    - name: DEVICE_A_MAC
+      value: "0xb4,0x96,0x91,0xb4,0xa6,0xb2"
+    - name: DEVICE_B_MAC
+      value: "0xb4,0x96,0x91,0xb4,0xa6,0xb3"
+    - name: DEVICE_A_PEER_MAC
+      value: "0x60,0x0,0x0,0x0,0x0,0x1"
+    - name: DEVICE_B_PEER_MAC
+      value: "0x60,0x0,0x0,0x0,0x0,0x2"
     securityContext:
       runAsUser: 0
+      privileged: true
       capabilities:
-        add: ["IPC_LOCK","SYS_ADMIN","SYS_NICE", "NET_RAW", "SYS_RESOURCE"]
+        add: ["IPC_LOCK","SYS_ADMIN","SYS_NICE", "NET_RAW", "SYS_RESOURCE", "SYS_RAWIO"]
     resources:
       limits:
-        cpu: 16
+        cpu: 6
         memory: "1Gi"
         hugepages-1Gi: "8Gi"
       requests:
-        cpu: 16
+        cpu: 6
         memory: "1Gi"
         hugepages-1Gi: "8Gi"
     volumeMounts:
-    - mountPath: /mnt/huge
-      name: hugepages
+    - name: hugepages
+      mountPath: /mnt/huge
     - name: dpdk
       mountPath: /var/run/dpdk
     - name: modules
       mountPath: /lib/modules
+    - name: firmware
+      mountPath: /lib/firmware
+    - name: vfio
+      mountPath: /dev/vfio
+      readOnly: False
   terminationGracePeriodSeconds: 5
   volumes:
+  - name: firmware
+    hostPath:
+      path: /lib/firmware
   - name: modules
     hostPath:
       path: /lib/modules
@@ -69,3 +75,7 @@ spec:
       medium: HugePages
   - name: dpdk
     emptyDir: {}
+  - name: vfio
+    hostPath:
+      path: /dev/vfio
+      type: Directory

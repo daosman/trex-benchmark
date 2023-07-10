@@ -12,15 +12,9 @@
 #   MTU (default 1518)
 
 function set_fwd_thread_sched () {
-  sleep 2
-  while ! pidof dpdk-testpmd >&/dev/null
-  do
-    sleep 1
-  done
+  pid=$(pidof _t-rex-64)
 
-  pid=$(pidof dpdk-testpmd)
-
-  for tid in $(ps -T -p ${pid} | grep lcore-worker | awk '{print $2}')
+  for tid in $(ps -T -p ${pid} | grep 'Trex DP core' | awk '{print $2}')
   do
     echo "chrt --fifo -p 1 ${tid}"
     chrt --fifo -p 1 ${tid}
@@ -244,12 +238,14 @@ echo "PEER_B_MAC=${PEER_B_MAC}"
 echo "MTU=${MTU}"
 echo -e "###########################################\n"
 
-if [ ${#CPUS_ALLOWED_ARRAY[@]} -ne 16 ]; then
-    echo "ERROR: This test needs 16 CPUs!"
-    exit 1
-fi
-
 set_allowed_hk_affinity ${CPUS_ALLOWED_HK}
+
+
+# Assuming that both NICs are on the same NUMA node.... better to be ;-)
+SOCKET=$(cat /sys/bus/pci/devices/${DEVICE_A}/numa_node)
+if [ ${SOCKET} == "-1" ]; then
+  SOCKET=0
+fi
 
 cat <<- END_OF_TREX_CONFIG > /etc/trex_cfg.yaml
 - port_limit: 2
@@ -257,18 +253,18 @@ cat <<- END_OF_TREX_CONFIG > /etc/trex_cfg.yaml
   interfaces:
     - "${DEVICE_A}"
     - "${DEVICE_B}"
-  c: 14
+  c: ${#CPUS_ALLOWED_FWD[@]}
   port_bandwidth_gb: ${PORT_BANDWIDTH_GB}
   port_info:
-    - dest_mac        :   [0x60,0x0,0x0,0x0,0x0,0x1]
-      src_mac         :   [0x50,0x0,0x0,0x0,0x0,0x1]
-    - dest_mac        :   [0x60,0x0,0x0,0x0,0x0,0x2]
-      src_mac         :   [0x50,0x0,0x0,0x0,0x0,0x2]
+    - dest_mac        :  [${DEVICE_A_PEER_MAC}]
+      src_mac         :  [${DEVICE_A_MAC}]
+    - dest_mac        :  [${DEVICE_B_PEER_MAC}]
+      src_mac         :  [${DEVICE_B_MAC}]
   platform:
     master_thread_id: ${CPUS_ALLOWED_HK[0]}
     latency_thread_id: ${CPUS_ALLOWED_HK[1]}
     dual_if:
-      - socket: 1
+      - socket: ${SOCKET}
         threads: [$(echo "$(IFS=,; echo "${CPUS_ALLOWED_FWD[*]}")")]
 END_OF_TREX_CONFIG
 
@@ -279,7 +275,7 @@ if [ ${MTU} -gt 2048 ]; then
     EXTRA_TREX_ARGS+=" --mbuf-size=${MBUF_SIZE} --total-num-mbufs=${MBUFS}"
 fi
 
-TREX_CMD="./t-rex-64 -i --no-ofed-check --checksum-offload -v 4 --iom 0"
+TREX_CMD="./t-rex-64 -i --no-ofed-check -v 4 --iom 0"
 #TREX_CMD=$(echo "${TREX_CMD}" | sed -e "s/\s\+/ /g")
 
 echo "################# TREX #################"
@@ -292,6 +288,8 @@ cat /etc/trex_cfg.yaml
 tmux new-session -d -n server -s trex "bash -c '${TREX_CMD}| tee /tmp/trex.server.out'; touch /tmp/trex-stopped; sleep infinity"
 
 wait_for_trex_server_ready
+
+#set_fwd_thread_sched
 
 function sigtermhandler() {
     echo "Caught SIGTERM"
